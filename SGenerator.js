@@ -277,7 +277,22 @@ define(function (require, exports, module) {
 			drop_enums = [];
 
 		var tableName = prefix + self.tableName(elem, options);
-		var table = schemaName + "." + tableName
+		var table = schemaName + "." + tableName;
+		
+		// column prefix
+		if(elem && elem.tags){
+			elem.tags.forEach(function (tableTag){
+				if(tableTag.name === "prefix"){
+					elem.prefix = tableTag.value;
+				}
+			});
+			if(elem.prefix){
+				elem.columns.forEach(function (col){
+					col.org_name = col.name;
+					col.name = elem.prefix + col.org_name;
+				});
+			}
+		}
 		
 		// create enums
 		elem.columns.forEach(function (col) {
@@ -356,8 +371,16 @@ define(function (require, exports, module) {
 			for (var i = 0, len = foreignKeyCtr.length; i < len; i++) {
 				var col = foreignKeyCtr[i];
 				var colName = self.columnName(col, options);
+				var orgColName = '';
+				if(col.org_name){
+					orgColName = col.org_name;
+				}
 				var refCol = col.referenceTo;
 				var refColName = self.columnName(refCol, options);
+				var orgRefColName = '';
+				if(refCol.org_name){
+					orgRefColName = refCol.org_name;
+				}
 				var refTableObj = refCol._parent;
 				var refTableName = self.tableName(refTableObj, options);
 				if (refTableObj._parent instanceof type.ERDDiagram) {
@@ -366,7 +389,10 @@ define(function (require, exports, module) {
 				}
 
 				var refSchemaName = self.schemaName(refTableObj._parent, options);
-				refs.push("ALTER TABLE " + table + " ADD CONSTRAINT FK_" + tableName + "__" + colName 
+				// refs.push("ALTER TABLE " + table + " ADD CONSTRAINT FK_" + tableName + "_" + orgColName 
+					// + " FOREIGN KEY (" + colName + ") REFERENCES " + refSchemaName + "." + refTableName
+					// + "(" + refColName + ");");
+				refs.push("ALTER TABLE " + table + " ADD CONSTRAINT FK_" + colName + "_" + refColName 
 					+ " FOREIGN KEY (" + colName + ") REFERENCES " + refSchemaName + "." + refTableName
 					+ "(" + refColName + ");");
 			}
@@ -509,6 +535,19 @@ define(function (require, exports, module) {
 					}
 					dropWriter.writeLine("DROP SCHEMA " + schemaName + ";");
 				}
+			}
+		});
+		elem.ownedElements.forEach(function (e) {
+			if (e instanceof type.ERDDataModel) {
+				// undo column prefix
+				if(e && e.tags){
+					if(e.prefix){
+						e.columns.forEach(function (col){
+							col.name = col.org_name;
+						});
+					}
+				}
+		
 			}
 		});
 		if (codeWriter.hasContent()) {
