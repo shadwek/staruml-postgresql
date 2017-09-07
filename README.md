@@ -1,3 +1,8 @@
+## Added the following to the original repo
+* column name prefix:
+| `prefix` | `Entity` | Gives the prefix of all the column names of the diagram |
+
+# ------ ORIGINAL README ------
 # Postgresql DDL Extension for StarUML 2
 
 This extension for [StarUML](http://staruml.io) support to generate DDL (Data Definition Language) from PostgreSQL. Install this extension from Extension Manager of StarUML.
