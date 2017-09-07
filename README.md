@@ -1,8 +1,9 @@
 ## Added the following to the original repo
-column name prefix:.
+column name prefix:
+
 | StarUML Type | PostgreSQL type | Note |
 | --- | --- | --- |
-| `prefix` | `Entity` | Gives the prefix of all the column names of the diagram |
+| `prefix` | `Entity` | Gives the prefix to all column names of the diagram/table |
 
 # ------ ORIGINAL README ------
 # Postgresql DDL Extension for StarUML 2
