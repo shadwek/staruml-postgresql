@@ -1,9 +1,12 @@
 ## Added the following to the original repo
-column name prefix:
+1. column name prefix as:
 
 | StarUML Type | PostgreSQL type | Note |
 | --- | --- | --- |
 | `prefix` | `Entity` | Gives the prefix to all column names of the diagram/table |
+
+2. Unique columns are defined in column declaration in `TABLE CREATE` statement.
+3. Added unique column group with uniqueWith custom-added property to StarUML.
 
 # ------ ORIGINAL README ------
 # Postgresql DDL Extension for StarUML 2
