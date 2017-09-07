@@ -6,7 +6,7 @@
 | `prefix` | `Entity` | Gives the prefix to all column names of the diagram/table |
 
 2. Unique columns are defined in column declaration in `TABLE CREATE` statement.
-3. Added unique column group with uniqueWith custom-added property to StarUML.
+3. Added unique column group with uniqueWith custom-added property to StarUML (in ERD-meta.js, ERD.js and main.js).
 
 # ------ ORIGINAL README ------
 # Postgresql DDL Extension for StarUML 2
