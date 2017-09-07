@@ -7,6 +7,7 @@
 
 2. Unique columns are defined in column declaration in `TABLE CREATE` statement.
 3. Added unique column group with uniqueWith custom-added property to StarUML (in ERD-meta.js, ERD.js and main.js).
+4. Added representation of uinqueWith columns (similar to PK, FK, U and N representation).
 
 # ------ ORIGINAL README ------
 # Postgresql DDL Extension for StarUML 2
