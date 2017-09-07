@@ -153,6 +153,9 @@ define(function (require, exports, module) {
         if (elem.primaryKey || !elem.nullable) {
             line += " NOT NULL";
         }
+		if(elem.unique){
+			line += " UNIQUE";
+		}
 		if (_type.indexOf('serial') == -1) {
 			line += defaultValue;
 		}
@@ -272,7 +275,7 @@ define(function (require, exports, module) {
             primaryKeys = [],
 			foreignKeys = [],
 			foreignKeyCtr = [],
-            uniques = [],
+            uniques = {},
 			comments = [],
 			drop_enums = [];
 
@@ -328,13 +331,15 @@ define(function (require, exports, module) {
 			if (column) {
 				if (col.primaryKey) {
 					primaryKeys.push(column);
-				} else
-					if (col.unique) {
-						uniques.push(column);
-					} else
-						if (column && col.foreignKey && !col.primaryKey) {
-							foreignKeys.push(column);
-						}
+				} else if (col.uniqueWith) {
+					if(!uniques[col.uniqueWith.name]){
+						uniques[col.uniqueWith.name] = [];
+					}
+					uniques[col.uniqueWith.name].push(col.name);
+				}
+				if (column && col.foreignKey && !col.primaryKey) {
+					foreignKeys.push(column);
+				}
 				if (options.foreignKey && col.referenceTo) {
 					foreignKeyCtr.push(col);
 				}
@@ -359,12 +364,14 @@ define(function (require, exports, module) {
         codeWriter.writeLine();
 
 		// uniques (combined?)
-		if (uniques.length > 0) {
-			codeWriter.writeLine("ALTER TABLE " + table);
-			codeWriter.indent();
-			codeWriter.writeLine("ADD UNIQUE (" + uniques.join(", ") + ");");
-			codeWriter.outdent();
-			codeWriter.writeLine();
+		if (Object.keys(uniques).length > 0) {
+			Object.keys(uniques).forEach(function(uniqueWithColumn){
+				codeWriter.writeLine("ALTER TABLE " + table);
+				codeWriter.indent();
+				codeWriter.writeLine("ADD UNIQUE (" + uniqueWithColumn + ", " + uniques[uniqueWithColumn].join(", ") + ");");
+				codeWriter.outdent();
+				codeWriter.writeLine();
+			});
 		}
 
 		if (foreignKeyCtr.length > 0) {
