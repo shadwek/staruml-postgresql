@@ -537,17 +537,24 @@ define(function (require, exports, module) {
 				}
 			}
 		});
+		// undo column prefix
 		elem.ownedElements.forEach(function (e) {
 			if (e instanceof type.ERDDataModel) {
-				// undo column prefix
-				if(e && e.tags){
-					if(e.prefix){
-						e.columns.forEach(function (col){
-							col.name = col.org_name;
+				e.ownedElements.forEach(function (diagram) {	
+					if (diagram instanceof type.ERDDiagram) {
+						diagram.ownedElements.forEach(function(table){
+							if(table instanceof type.ERDEntity){
+								if(table && table.tags){
+									if(table.prefix){
+										table.columns.forEach(function (col){
+											col.name = col.org_name;
+										});
+									}
+								}
+							}
 						});
 					}
-				}
-		
+				});
 			}
 		});
 		if (codeWriter.hasContent()) {
