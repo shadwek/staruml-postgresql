@@ -1,9 +1,10 @@
 ## Added the following to the original repo
-1. column name prefix as:
+1. table prefix to column names and database prefix to schema name as:
 
 | StarUML Type | PostgreSQL type | Note |
 | --- | --- | --- |
 | `prefix` | `Entity` | Gives the prefix to all column names of the diagram/table |
+| `prefix` | `Project` | Gives the prefix to all schema names of the project/database, should be in the same level as 'database' prefix |
 
 2. Unique columns are defined in column declaration in `TABLE CREATE` statement.
 3. Added unique column group with uniqueWith custom-added property to StarUML (in ERD-meta.js, ERD.js and main.js).
