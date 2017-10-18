@@ -281,12 +281,11 @@ define(function (require, exports, module) {
 
 		var tableName = prefix + self.tableName(elem, options);
 		var table = schemaName + "." + tableName;
-		
 		// column prefix
 		if(elem && elem.tags){
-			elem.tags.forEach(function (tableTag){
-				if(tableTag.name === "prefix"){
-					elem.prefix = tableTag.value;
+			elem.tags.forEach(function (tableTagName){
+				if(tableTagName.name === "prefix"){
+					elem.prefix = tableTagName.value;
 				}
 			});
 			if(elem.prefix){
@@ -378,24 +377,39 @@ define(function (require, exports, module) {
 			for (var i = 0, len = foreignKeyCtr.length; i < len; i++) {
 				var col = foreignKeyCtr[i];
 				var colName = self.columnName(col, options);
-				var orgColName = '';
-				if(col.org_name){
-					orgColName = col.org_name;
-				}
+				// var orgColName = '';
+				// if(col.org_name){
+					// orgColName = col.org_name;
+				// }
 				var refCol = col.referenceTo;
-				var refColName = self.columnName(refCol, options);
-				var orgRefColName = '';
-				if(refCol.org_name){
-					orgRefColName = refCol.org_name;
-				}
+				// var refColName = self.columnName(refCol, options);
+				// var orgRefColName = '';
+				// if(refCol.org_name){
+					// orgRefColName = refCol.org_name;
+				// }
+				var refColName = '';
 				var refTableObj = refCol._parent;
 				var refTableName = self.tableName(refTableObj, options);
 				if (refTableObj._parent instanceof type.ERDDiagram) {
-					var prefix = CodeGenUtils.stringTag("prefix", refTableObj._parent)
-					refTableName = prefix + refTableName;
+					var refTablePrefix = CodeGenUtils.stringTag("prefix", refTableObj._parent)
+					refTableName = refTablePrefix + refTableName;
+					var refColumnPrefix = CodeGenUtils.stringTag("prefix", refTableObj);
+					if(refCol.org_name == undefined) refCol.org_name = refCol.name;
+					refColName = refColumnPrefix + refCol.org_name;
+					
 				}
-
 				var refSchemaName = self.schemaName(refTableObj._parent, options);
+				// if(refTableObj._parent._parent && refTableObj._parent._parent.name){
+					// refSchemaName = refTableObj._parent._parent.name;
+				// }	
+				if(refTableObj._parent._parent._parent && refTableObj._parent._parent._parent.tags){
+					refTableObj._parent._parent._parent.tags.forEach(function (databaseTagName){
+						if(databaseTagName.name === "prefix"){
+							refSchemaName = databaseTagName.value + refSchemaName;
+							return;
+						}
+					});
+				}	
 				// refs.push("ALTER TABLE " + table + " ADD CONSTRAINT FK_" + tableName + "_" + orgColName 
 					// + " FOREIGN KEY (" + colName + ") REFERENCES " + refSchemaName + "." + refTableName
 					// + "(" + refColName + ");");
@@ -521,26 +535,35 @@ define(function (require, exports, module) {
 		var self = this;
 		elem.ownedElements.forEach(function (e) {
 			if (e instanceof type.ERDDataModel) {
-
+				if(e._parent && e._parent.tags){
+					e._parent.tags.forEach(function (databaseTagName){
+						if(databaseTagName.name === "prefix"){
+							e._parent.prefix = databaseTagName.value;
+						}
+					});
+				}
 				var schemaName = self.schemaName(e, options).toLowerCase();
+				if(e._parent.prefix) e.name = e._parent.prefix + schemaName;
 				var dataModelName = CodeGenUtils.replaceAll(e.name, ' ', '_').toLowerCase();
-				self.generateTables(e, path, options, schemaName, dataModelName);
+				self.generateTables(e, path, options, e.name, dataModelName);
 				if (schemaName !== 'public' && schemas.indexOf(schemaName) == -1) {
 					schemas.push(schemaName);
-					codeWriter.writeLine("-- Schema for: " + e.name);
-					codeWriter.writeLine('CREATE SCHEMA ' + schemaName);
+					codeWriter.writeLine("-- Schema for: " + schemaName);
+					codeWriter.writeLine('CREATE SCHEMA ' + e.name);
 					codeWriter.indent();
 					codeWriter.writeLine("AUTHORIZATION " + options.owner + ";");
 					codeWriter.outdent();
 					var documentation = e.documentation;
 					if (documentation) {
 						codeWriter.writeLine();
-						codeWriter.writeLine("COMMENT ON SCHEMA " + schemaName);
+						codeWriter.writeLine("COMMENT ON SCHEMA " + e.name);
 						codeWriter.indent();
 						codeWriter.writeLine("IS " + CodeGenUtils.asComment(documentation) + ";");
 						codeWriter.outdent();
 					}
-					dropWriter.writeLine("DROP SCHEMA " + schemaName + ";");
+					dropWriter.writeLine("DROP SCHEMA " + e.name + ";");
+					// undo schema prefix
+					e.name = schemaName;
 				}
 			}
 		});
@@ -599,12 +622,12 @@ define(function (require, exports, module) {
 				}
 				
 				if (codeWriter.hasContent()) {
-					var diagName = CodeGenUtils.replaceAll(diagram.name, ' ', '_').toLowerCase();
-					var file = FileSystem.getFileForPath(path + "/" + dataModelName + "_" +
-						diagName + "_create.sql");
+					// var diagName = CodeGenUtils.replaceAll(diagram.name, ' ', '_').toLowerCase();
+					// var fileName = path + "/" + dataModelName + "_" + diagName;
+					var fileName = path + "/" + dataModelName;
+					var file = FileSystem.getFileForPath(fileName + "_create.sql");
 					FileUtils.writeText(file, codeWriter.getData(), true);
-					file = FileSystem.getFileForPath(path + "/" + dataModelName + "_" +
-						diagName + "_drop.sql");
+					file = FileSystem.getFileForPath(fileName + "_drop.sql");
 					FileUtils.writeText(file, dropWriter.getData(), true);
 				}
 			} else if (diagram instanceof type.ERDEntity) {
